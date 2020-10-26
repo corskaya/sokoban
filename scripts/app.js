@@ -1,60 +1,112 @@
+const canvas = document.getElementById('board');
+const boardElement = document.getElementById('board');
 document.addEventListener('keydown', keydown);
 
-const boardElement = document.getElementById('board');
+const groundImg = new Image();
+groundImg.src = 'images/ground.png';
+groundImg.alt = 'ground';
+
+const playerImg = new Image();
+playerImg.src = 'images/player.png';
+playerImg.alt = 'player';
+
+const redboxImg = new Image();
+redboxImg.src = 'images/redbox.png';
+redboxImg.alt = 'redbox';
+
+const targetImg = new Image();
+targetImg.src = 'images/target.png';
+targetImg.alt = 'target';
+
+const wallImg = new Image();
+wallImg.src = 'images/wall.png';
+wallImg.alt = 'wall';
+
+const yellowboxImg = new Image();
+yellowboxImg.src = 'images/yellowbox.png';
+yellowboxImg.alt = 'yellowbox';
+
+window.onload = () => {
+    printBoard();
+}
 
 const ground = [
     [" ", " ", "#", "#", "#", "#", "#", " "],
     ["#", "#", "#", " ", " ", " ", "#", " "],
     ["#", ".", " ", " ", " ", " ", "#", " "],
-    ["#", "#", "#", " ", " ", " ", "#", " "],
-    ["#", " ", "#", "#", " ", " ", "#", " "],
-    ["#", " ", "#", " ", " ", " ", "#", "#"],
-    ["#", " ", " ", " ", " ", " ", " ", "#"],
-    ["#", " ", " ", " ", " ", " ", " ", "#"],
+    ["#", "#", "#", " ", " ", ".", "#", " "],
+    ["#", ".", "#", "#", " ", " ", "#", " "],
+    ["#", " ", "#", " ", ".", " ", "#", "#"],
+    ["#", " ", " ", ".", " ", " ", ".", "#"],
+    ["#", " ", " ", " ", ".", " ", " ", "#"],
     ["#", "#", "#", "#", "#", "#", "#", "#"]];
 
 const position = [
     [" ", " ", " ", " ", " ", " ", " ", " "],
     [" ", " ", " ", " ", " ", " ", " ", " "],
     [" ", " ", "x", "o", " ", " ", " ", " "],
+    [" ", " ", " ", " ", "o", " ", " ", " "],
+    [" ", " ", " ", " ", "o", " ", " ", " "],
     [" ", " ", " ", " ", " ", " ", " ", " "],
-    [" ", " ", " ", " ", " ", " ", " ", " "],
-    [" ", " ", " ", " ", " ", " ", " ", " "],
-    [" ", " ", " ", " ", " ", " ", " ", " "],
+    [" ", "o", " ", "o", "o", "o", " ", " "],
     [" ", " ", " ", " ", " ", " ", " ", " "],
     [" ", " ", " ", " ", " ", " ", " ", " "]];
 
 function printBoard() {
-    let board = "";
+    let rows = [];
 
     for (let i = 0; i < 9; i++) {
+        let cells = []
+
         for (let j = 0; j < 8; j++) {
             let cell = ground[i][j];
-
             if (cell === "#") {
-                board += cell;
+                cells.push(cell);
                 continue;
             }
             if (cell === " ") {
-                board += position[i][j];
+                cells.push(position[i][j]);
                 continue;
             }
             if (position[i][j] === "x") {
-                board += "X";
+                cells.push("X");
             }
             else if (position[i][j] === "o") {
-                board += "O";
+                cells.push("O");
             } else {
-                board += cell;
+                cells.push(cell);
             }
         }
-        board += "\n";
+        rows.push(cells);
     }
 
-    boardElement.innerText = board;
-}
+    var ctx = canvas.getContext('2d');
 
-printBoard();
+    for (let i = 0; i < 9; i++) {
+        for (let j = 0; j < 8; j++) {
+            ctx.drawImage(groundImg, j * 64, i * 64);
+            if (rows[i][j] === "#") {
+                ctx.drawImage(wallImg, j * 64, i * 64);
+            }
+            if (rows[i][j] === ".") {
+                ctx.drawImage(targetImg, j * 64 + 16, i * 64 + 16);
+            }
+            if (rows[i][j] === "o") {
+                ctx.drawImage(yellowboxImg, j * 64, i * 64);
+            }
+            if (rows[i][j] === "O") {
+                ctx.drawImage(redboxImg, j * 64, i * 64);
+            }
+            if (rows[i][j] === "x") {
+                ctx.drawImage(playerImg, j * 64 + 13.5, i * 64 + 2.5);
+            }
+            if (rows[i][j] === "X") {
+                ctx.drawImage(targetImg, j * 64 + 16, i * 64 + 16);
+                ctx.drawImage(playerImg, j * 64 + 13.5, i * 64 + 2.5);
+            }
+        }
+    }
+}
 
 function getCurrentPlayerPosition() {
     for (let i = 0; i < 9; i++) {
