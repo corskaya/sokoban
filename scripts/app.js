@@ -1,65 +1,94 @@
 const canvas = document.getElementById('board');
-const boardElement = document.getElementById('board');
-document.addEventListener('keydown', keydown);
+const images = {};
+const directions = {
+    'ArrowUp': [-1, 0],
+    'ArrowDown': [+1, 0],
+    'ArrowLeft': [0, -1],
+    'ArrowRight': [0, +1],
+}
 
-const groundImg = new Image();
-groundImg.src = 'images/ground.png';
-groundImg.alt = 'ground';
+let player = { x: 0, y: 0 };
+let ground = [];
+let position = [];
+let originalPosition = [];
 
-const playerImg = new Image();
-playerImg.src = 'images/player.png';
-playerImg.alt = 'player';
-
-const redboxImg = new Image();
-redboxImg.src = 'images/redbox.png';
-redboxImg.alt = 'redbox';
-
-const targetImg = new Image();
-targetImg.src = 'images/target.png';
-targetImg.alt = 'target';
-
-const wallImg = new Image();
-wallImg.src = 'images/wall.png';
-wallImg.alt = 'wall';
-
-const yellowboxImg = new Image();
-yellowboxImg.src = 'images/yellowbox.png';
-yellowboxImg.alt = 'yellowbox';
+['ground', 'player', 'redbox', 'target', 'wall', 'yellowbox'].forEach(name => {
+    const img = new Image();
+    img.src = `images/${name}.png`;
+    img.alt = name;
+    images[name] = img;
+});
 
 window.onload = () => {
+    setPlayerPosition();
     printBoard();
 }
 
-const ground = [
-    [" ", " ", "#", "#", "#", "#", "#", " "],
-    ["#", "#", "#", " ", " ", " ", "#", " "],
-    ["#", ".", " ", " ", " ", " ", "#", " "],
-    ["#", "#", "#", " ", " ", ".", "#", " "],
-    ["#", ".", "#", "#", " ", " ", "#", " "],
-    ["#", " ", "#", " ", ".", " ", "#", "#"],
-    ["#", " ", " ", ".", " ", " ", ".", "#"],
-    ["#", " ", " ", " ", ".", " ", " ", "#"],
-    ["#", "#", "#", "#", "#", "#", "#", "#"]];
+let level = `##########
+##########
+##########
+#######@ #
+### $   .#
+### . $  #
+## .$##  #
+###  ##$.#
+##   ##  #
+##########`;
+createLevel(level);
 
-const position = [
-    [" ", " ", " ", " ", " ", " ", " ", " "],
-    [" ", " ", " ", " ", " ", " ", " ", " "],
-    [" ", " ", "x", "o", " ", " ", " ", " "],
-    [" ", " ", " ", " ", "o", " ", " ", " "],
-    [" ", " ", " ", " ", "o", " ", " ", " "],
-    [" ", " ", " ", " ", " ", " ", " ", " "],
-    [" ", "o", " ", "o", "o", "o", " ", " "],
-    [" ", " ", " ", " ", " ", " ", " ", " "],
-    [" ", " ", " ", " ", " ", " ", " ", " "]];
+function createLevel(level) {
+    let groundRow = [];
+    let positionRow = [];
+    for (let i = 0; i < level.length; i++) {
+        if (level[i] === "#") {
+            groundRow.push("#");
+            positionRow.push(" ");
+        } else if (level[i] === " ") {
+            groundRow.push(" ");
+            positionRow.push(" ");
+        } else if (level[i] === ".") {
+            groundRow.push(".");
+            positionRow.push(" ");
+        } else if (level[i] === "@") {
+            groundRow.push(" ");
+            positionRow.push("x");
+        } else if (level[i] === "$") {
+            groundRow.push(" ");
+            positionRow.push("o");
+        } else {
+            ground.push(groundRow);
+            position.push(positionRow);
+            groundRow = [];
+            positionRow = [];
+        }
+    }
+    ground.push(groundRow);
+    position.push(positionRow);
+    originalPosition = copyPosition(position);
+    canvas.width = ground[0].length * 64;
+    canvas.height = ground.length * 64;
+}
+
+function copyPosition(position) {
+    let newPosition = [];
+    for (let i = 0; i < position.length; i++) {
+        var row = [];
+        for (let j = 0; j < position[i].length; j++) {
+            row.push(position[i][j]);
+        }
+        newPosition.push(row);
+    }
+    return newPosition;
+}
 
 function printBoard() {
-    let rows = [];
+    const rows = [];
 
-    for (let i = 0; i < 9; i++) {
-        let cells = []
+    for (let i = 0; i < ground.length; i++) {
+        const cells = []
 
-        for (let j = 0; j < 8; j++) {
-            let cell = ground[i][j];
+        for (let j = 0; j < ground[i].length; j++) {
+            const cell = ground[i][j];
             if (cell === "#") {
                 cells.push(cell);
                 continue;
@@ -74,118 +103,91 @@ function printBoard() {
             else if (position[i][j] === "o") {
                 cells.push("O");
             } else {
-                cells.push(cell);
+                cells.push(".");
             }
         }
+
         rows.push(cells);
     }
 
     var ctx = canvas.getContext('2d');
 
-    for (let i = 0; i < 9; i++) {
-        for (let j = 0; j < 8; j++) {
-            ctx.drawImage(groundImg, j * 64, i * 64);
+    for (let i = 0; i < ground.length; i++) {
+        for (let j = 0; j < ground[i].length; j++) {
+            ctx.drawImage(images.ground, j * 64, i * 64);
             if (rows[i][j] === "#") {
-                ctx.drawImage(wallImg, j * 64, i * 64);
+                ctx.drawImage(images.wall, j * 64, i * 64);
             }
             if (rows[i][j] === ".") {
-                ctx.drawImage(targetImg, j * 64 + 16, i * 64 + 16);
+                ctx.drawImage(images.target, j * 64 + 16, i * 64 + 16);
             }
             if (rows[i][j] === "o") {
-                ctx.drawImage(yellowboxImg, j * 64, i * 64);
+                ctx.drawImage(images.yellowbox, j * 64, i * 64);
             }
             if (rows[i][j] === "O") {
-                ctx.drawImage(redboxImg, j * 64, i * 64);
+                ctx.drawImage(images.redbox, j * 64, i * 64);
             }
             if (rows[i][j] === "x") {
-                ctx.drawImage(playerImg, j * 64 + 13.5, i * 64 + 2.5);
+                ctx.drawImage(images.player, j * 64 + 13.5, i * 64 + 2.5);
             }
             if (rows[i][j] === "X") {
-                ctx.drawImage(targetImg, j * 64 + 16, i * 64 + 16);
-                ctx.drawImage(playerImg, j * 64 + 13.5, i * 64 + 2.5);
+                ctx.drawImage(images.target, j * 64 + 16, i * 64 + 16);
+                ctx.drawImage(images.player, j * 64 + 13.5, i * 64 + 2.5);
             }
-        }
-    }
-}
-
-function getCurrentPlayerPosition() {
-    for (let i = 0; i < 9; i++) {
-        for (let j = 0; j < 8; j++) {
-            if (position[i][j] === "x")
-                return [i, j];
         }
     }
 }
 
 function keydown(e) {
-    let x = getCurrentPlayerPosition();
+    if (e.code === "ArrowUp" || e.code === "ArrowDown" || e.code === "ArrowLeft" || e.code === "ArrowRight") {
+        movePlayer(e.code);
+    } else if (e.code === "KeyR") {
+        resetLevel();
+    }
+}
 
-    if (e.code === "ArrowUp") {
-        let i = x[0];
-        let j = x[1];
-        if (ground[i - 1][j] === "#") return;
-        if (position[i - 1][j] === "o") {
-            if (position[i - 2][j] === "o" || ground[i - 2][j] === "#") return;
-            position[i - 2][j] = "o";
-            position[i - 1][j] = "x";
-            position[i][j] = " ";
-        }
-        position[i - 1][j] = "x";
-        position[i][j] = " ";
+function movePlayer(direction) {
+    const x1 = player.x + directions[direction][0];
+    const x2 = player.x + 2 * directions[direction][0];
+    const y1 = player.y + directions[direction][1];
+    const y2 = player.y + 2 * directions[direction][1];
+
+    if (ground[x1][y1] === "#") {
+        return;
     }
-    if (e.code === "ArrowDown") {
-        let i = x[0];
-        let j = x[1];
-        if (ground[i + 1][j] === "#") return;
-        if (position[i + 1][j] === "o") {
-            if (position[i + 2][j] === "o" || ground[i + 2][j] === "#") return;
-            position[i + 2][j] = "o";
-            position[i + 1][j] = "x";
-            position[i][j] = " ";
+    if (position[x1][y1] === "o") {
+        if (position[x2][y2] === "o" || ground[x2][y2] === "#") {
+            return;
         }
-        position[i + 1][j] = "x";
-        position[i][j] = " ";
+        position[x2][y2] = "o";
     }
-    if (e.code === "ArrowLeft") {
-        let i = x[0];
-        let j = x[1];
-        if (ground[i][j - 1] === "#") return;
-        if (position[i][j - 1] === "o") {
-            if (position[i][j - 2] === "o" || ground[i][j - 2] === "#") return;
-            position[i][j - 2] = "o";
-            position[i][j - 1] = "x";
-            position[i][j] = " ";
-        }
-        position[i][j - 1] = "x";
-        position[i][j] = " ";
-    }
-    if (e.code === "ArrowRight") {
-        let i = x[0];
-        let j = x[1];
-        if (ground[i][j + 1] === "#") return;
-        if (position[i][j + 1] === "o") {
-            if (position[i][j + 2] === "o" || ground[i][j + 2] === "#") return;
-            position[i][j + 2] = "o";
-            position[i][j + 1] = "x";
-            position[i][j] = " ";
-        }
-        position[i][j + 1] = "x";
-        position[i][j] = " ";
-    }
+    position[x1][y1] = "x";
+    position[player.x][player.y] = " ";
+    player = { x: x1, y: y1 };
 
     printBoard();
-    let win = checkPosition();
-    if (win) {
-        alert("Congratulations");
-    }
+    checkPosition();
 }
 
 function checkPosition() {
-    for (let i = 0; i < 9; i++) {
-        for (let j = 0; j < 8; j++) {
+    for (let i = 0; i < position.length; i++)
+        for (let j = 0; j < position[i].length; j++)
             if (ground[i][j] === "." && position[i][j] != "o")
-                return false;
-        }
-    }
-    return true;
+                return;
+    alert("Congratulations");
 }
+
+function setPlayerPosition() {
+    for (let i = 0; i < position.length; i++)
+        for (let j = 0; j < position[i].length; j++)
+            if (position[i][j] === "x")
+                player = { x: i, y: j };
+}
+
+function resetLevel() {
+    position = copyPosition(originalPosition);
+    setPlayerPosition();
+    printBoard();
+}
+
+document.addEventListener('keydown', keydown);
