@@ -11,6 +11,7 @@ let player = { x: 0, y: 0 };
 let ground = [];
 let position = [];
 let originalPosition = [];
+let moveStack = [];
 
 ['ground', 'player', 'redbox', 'target', 'wall', 'yellowbox'].forEach(name => {
     const img = new Image();
@@ -143,6 +144,8 @@ function keydown(e) {
         movePlayer(e.code);
     } else if (e.code === "KeyR") {
         resetLevel();
+    } else if (e.code === "KeyU") {
+        undoLastMove();
     }
 }
 
@@ -155,14 +158,19 @@ function movePlayer(direction) {
     if (ground[x1][y1] === "#") {
         return;
     }
+    let move = {};
     if (position[x1][y1] === "o") {
         if (position[x2][y2] === "o" || ground[x2][y2] === "#") {
             return;
         }
         position[x2][y2] = "o";
+        move.box = { from: { x: x2, y: y2 }, to: { x: x1, y: y1 } };
     }
     position[x1][y1] = "x";
     position[player.x][player.y] = " ";
+    move.player = { from: { x: x1, y: y1 }, to: { x: player.x, y: player.y } };
+    moveStack.push(move);
+
     player = { x: x1, y: y1 };
 
     printBoard();
@@ -186,7 +194,24 @@ function setPlayerPosition() {
 
 function resetLevel() {
     position = copyPosition(originalPosition);
+    moveStack = [];
     setPlayerPosition();
+    printBoard();
+}
+
+function undoLastMove() {
+    if (moveStack.length === 0) {
+        return;
+    }
+
+    let move = moveStack.pop();
+    position[move.player.to.x][move.player.to.y] = "x";
+    position[move.player.from.x][move.player.from.y] = move.box !== undefined ? "o" : " ";
+    if (move.box !== undefined) {
+        position[move.box.to.x][move.box.to.y] = "o";
+        position[move.box.from.x][move.box.from.y] = " ";
+    }
+    player = { x: move.player.to.x, y: move.player.to.y };
     printBoard();
 }
 
