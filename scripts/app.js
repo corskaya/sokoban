@@ -14,6 +14,7 @@ let originalPosition = [];
 let moveStack = [];
 let playerDirection = 'playerDown';
 let undoCount = 0;
+let currentLevel = 0;
 
 ['ground', 'redbox', 'target', 'wall', 'yellowbox', 'playerUp', 'playerDown', 'playerLeft', 'playerRight'].forEach(name => {
     const img = new Image();
@@ -27,21 +28,16 @@ window.onload = () => {
     printBoard();
 }
 
-let level = `##########
-#@ #######
-#$$#######
-#  #######
-#..#######
-#. $   ###
-#   .#####
-#$ #######
-#  #######
-##########`;
-createLevel(level);
+createLevel(levels[currentLevel]);
 
 function createLevel(level) {
+    playerDirection = 'playerDown'
+    moveStack = [];
+    undoCount = 0;
     let groundRow = [];
     let positionRow = [];
+    ground = [];
+    position = [];
     for (let i = 0; i < level.length; i++) {
         if (level[i] === "#") {
             groundRow.push("#");
@@ -68,6 +64,7 @@ function createLevel(level) {
     ground.push(groundRow);
     position.push(positionRow);
     originalPosition = copyPosition(position);
+    setPlayerPosition();
     canvas.width = ground[0].length * 64;
     canvas.height = ground.length * 64 + 100;
 }
@@ -144,9 +141,9 @@ function printBoard() {
 }
 
 function printInfo() {
-    let info = `Move: ${moveStack.length} Undo: ${undoCount} Box: ${getRemainingBoxCount()}`;
+    let info = `Move: ${moveStack.length} Undo: ${undoCount} Box: ${getRemainingBoxCount()} Level: ${currentLevel + 1}`;
     var ctx = canvas.getContext('2d');
-    ctx.font = '48px serif';
+    ctx.font = '36px serif';
     ctx.textBaseline = 'top';
     ctx.clearRect(0, position.length * 64, position.length * 64, 100);
     ctx.fillText(info, 10, position.length * 64 + 24);
@@ -172,6 +169,10 @@ function keydown(e) {
         resetLevel();
     } else if (e.code === "KeyU") {
         undoLastMove();
+    } else if (e.code === "KeyP") {
+        previousLevel();
+    } else if (e.code === "KeyN") {
+        nextLevel();
     }
 }
 
@@ -260,6 +261,18 @@ function undoLastMove() {
     player = { x: move.player.to.x, y: move.player.to.y };
     undoCount++;
 
+    printBoard();
+}
+
+function previousLevel() {
+    if (currentLevel === 0) return
+    createLevel(levels[--currentLevel]);
+    printBoard();
+}
+
+function nextLevel() {
+    if (currentLevel > levels.length - 2) return;
+    createLevel(levels[++currentLevel]);
     printBoard();
 }
 
