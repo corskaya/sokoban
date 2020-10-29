@@ -12,8 +12,9 @@ let ground = [];
 let position = [];
 let originalPosition = [];
 let moveStack = [];
+let playerDirection = 'playerDown';
 
-['ground', 'player', 'redbox', 'target', 'wall', 'yellowbox'].forEach(name => {
+['ground', 'redbox', 'target', 'wall', 'yellowbox', 'playerUp', 'playerDown', 'playerLeft', 'playerRight'].forEach(name => {
     const img = new Image();
     img.src = `images/${name}.png`;
     img.alt = name;
@@ -25,16 +26,23 @@ window.onload = () => {
     printBoard();
 }
 
-let level = `##########
-##########
-##########
-#######@ #
-### $   .#
-### . $  #
-## .$##  #
-###  ##$.#
-##   ##  #
-##########`;
+let level = `#############################
+#                           #
+# .$.$.$.$.$.$.$.$.$.$.$.$. #
+# $.$.$.$.$.$.$.$.$.$.$.$.$ #
+# .$.$.$.$.$.$.$.$.$.$.$.$. #
+# $.$.$.$.$.$.$.$.$.$.$.$.$ #
+# .$.$.$.$.$.$.$.$.$.$.$.$. #
+# $.$.$.$.$.$.$.$.$.$.$.$.$ #
+# .$.$.$.$.$.$@$.$.$.$.$.$. #
+# $.$.$.$.$.$.$.$.$.$.$.$.$ #
+# .$.$.$.$.$.$.$.$.$.$.$.$. #
+# $.$.$.$.$.$.$.$.$.$.$.$.$ #
+# .$.$.$.$.$.$.$.$.$.$.$.$. #
+# $.$.$.$.$.$.$.$.$.$.$.$.$ #
+# .$.$.$.$.$.$.$.$.$.$.$.$. #
+#                           #
+#############################`;
 createLevel(level);
 
 function createLevel(level) {
@@ -129,11 +137,11 @@ function printBoard() {
                 ctx.drawImage(images.redbox, j * 64, i * 64);
             }
             if (rows[i][j] === "x") {
-                ctx.drawImage(images.player, j * 64 + 13.5, i * 64 + 2.5);
+                ctx.drawImage(images[playerDirection], j * 64 + 13.5, i * 64 + 2.5);
             }
             if (rows[i][j] === "X") {
                 ctx.drawImage(images.target, j * 64 + 16, i * 64 + 16);
-                ctx.drawImage(images.player, j * 64 + 13.5, i * 64 + 2.5);
+                ctx.drawImage(images[playerDirection], j * 64 + 13.5, i * 64 + 2.5);
             }
         }
     }
@@ -150,6 +158,25 @@ function keydown(e) {
 }
 
 function movePlayer(direction) {
+    switch (direction) {
+        case 'ArrowUp':
+            playerDirection = 'playerUp';
+            break;
+
+        case 'ArrowDown':
+            playerDirection = 'playerDown';
+            break;
+
+        case 'ArrowLeft':
+            playerDirection = 'playerLeft';
+            break;
+
+        case 'ArrowRight':
+            playerDirection = 'playerRight';
+            break;
+    }
+    printBoard();
+
     const x1 = player.x + directions[direction][0];
     const x2 = player.x + 2 * directions[direction][0];
     const y1 = player.y + directions[direction][1];
