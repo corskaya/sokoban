@@ -14,7 +14,7 @@ let originalPosition = [];
 let moveStack = [];
 let playerDirection = 'playerDown';
 let undoCount = 0;
-let currentLevel = 0;
+let currentLevel = +localStorage.getItem('currentLevel') || 0;
 
 ['ground', 'redbox', 'target', 'wall', 'yellowbox', 'playerUp', 'playerDown', 'playerLeft', 'playerRight'].forEach(name => {
     const img = new Image();
@@ -66,7 +66,7 @@ function createLevel(level) {
     originalPosition = copyPosition(position);
     setPlayerPosition();
     canvas.width = ground[0].length * 64;
-    canvas.height = ground.length * 64 + 100;
+    canvas.height = ground.length * 64 + 60;
 }
 
 function copyPosition(position) {
@@ -145,8 +145,8 @@ function printInfo() {
     var ctx = canvas.getContext('2d');
     ctx.font = '36px serif';
     ctx.textBaseline = 'top';
-    ctx.clearRect(0, position.length * 64, position.length * 64, 100);
-    ctx.fillText(info, 10, position.length * 64 + 24);
+    ctx.clearRect(0, position.length * 64, position.length * 64, 60);
+    ctx.fillText(info, 10, position.length * 64 + 10);
 }
 
 function getRemainingBoxCount() {
@@ -228,7 +228,7 @@ function checkPosition() {
         for (let j = 0; j < position[i].length; j++)
             if (ground[i][j] === "." && position[i][j] != "o")
                 return;
-    alert("Congratulations");
+    nextLevel();
 }
 
 function setPlayerPosition() {
@@ -239,6 +239,7 @@ function setPlayerPosition() {
 }
 
 function resetLevel() {
+    playerDirection = 'playerDown'
     position = copyPosition(originalPosition);
     moveStack = [];
     undoCount = 0;
@@ -267,12 +268,14 @@ function undoLastMove() {
 function previousLevel() {
     if (currentLevel === 0) return
     createLevel(levels[--currentLevel]);
+    localStorage.setItem('currentLevel', currentLevel);
     printBoard();
 }
 
 function nextLevel() {
     if (currentLevel > levels.length - 2) return;
     createLevel(levels[++currentLevel]);
+    localStorage.setItem('currentLevel', currentLevel);
     printBoard();
 }
 
