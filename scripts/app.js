@@ -169,6 +169,8 @@ function keydown(e) {
         resetLevel();
     } else if (e.code === "KeyU") {
         undoLastMove();
+    } else if (e.code === "KeyG") {
+        goToLevel();
     } else if (e.code === "KeyP") {
         previousLevel();
     } else if (e.code === "KeyN") {
@@ -265,16 +267,28 @@ function undoLastMove() {
     printBoard();
 }
 
+function goToLevel() {
+    var level = prompt('Enter a level number(1-1000)', currentLevel + 1);
+    if (isNaN(level) || + (+level < 1 || +level > 1000)) {
+        goToLevel();
+        return;
+    }
+    changeLevel(+level - 1);
+}
+
 function previousLevel() {
     if (currentLevel === 0) return
-    createLevel(levels[--currentLevel]);
-    localStorage.setItem('currentLevel', currentLevel);
-    printBoard();
+    changeLevel(currentLevel - 1);
 }
 
 function nextLevel() {
     if (currentLevel > levels.length - 2) return;
-    createLevel(levels[++currentLevel]);
+    changeLevel(currentLevel + 1);
+}
+
+function changeLevel(level) {
+    currentLevel = level;
+    createLevel(levels[currentLevel]);
     localStorage.setItem('currentLevel', currentLevel);
     printBoard();
 }
