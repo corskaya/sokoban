@@ -13,6 +13,7 @@ let position = [];
 let originalPosition = [];
 let moveStack = [];
 let playerDirection = 'playerDown';
+let undoCount = 0;
 
 ['ground', 'redbox', 'target', 'wall', 'yellowbox', 'playerUp', 'playerDown', 'playerLeft', 'playerRight'].forEach(name => {
     const img = new Image();
@@ -26,23 +27,16 @@ window.onload = () => {
     printBoard();
 }
 
-let level = `#############################
-#                           #
-# .$.$.$.$.$.$.$.$.$.$.$.$. #
-# $.$.$.$.$.$.$.$.$.$.$.$.$ #
-# .$.$.$.$.$.$.$.$.$.$.$.$. #
-# $.$.$.$.$.$.$.$.$.$.$.$.$ #
-# .$.$.$.$.$.$.$.$.$.$.$.$. #
-# $.$.$.$.$.$.$.$.$.$.$.$.$ #
-# .$.$.$.$.$.$@$.$.$.$.$.$. #
-# $.$.$.$.$.$.$.$.$.$.$.$.$ #
-# .$.$.$.$.$.$.$.$.$.$.$.$. #
-# $.$.$.$.$.$.$.$.$.$.$.$.$ #
-# .$.$.$.$.$.$.$.$.$.$.$.$. #
-# $.$.$.$.$.$.$.$.$.$.$.$.$ #
-# .$.$.$.$.$.$.$.$.$.$.$.$. #
-#                           #
-#############################`;
+let level = `##########
+#@ #######
+#$$#######
+#  #######
+#..#######
+#. $   ###
+#   .#####
+#$ #######
+#  #######
+##########`;
 createLevel(level);
 
 function createLevel(level) {
@@ -75,7 +69,7 @@ function createLevel(level) {
     position.push(positionRow);
     originalPosition = copyPosition(position);
     canvas.width = ground[0].length * 64;
-    canvas.height = ground.length * 64;
+    canvas.height = ground.length * 64 + 100;
 }
 
 function copyPosition(position) {
@@ -145,6 +139,30 @@ function printBoard() {
             }
         }
     }
+
+    printInfo();
+}
+
+function printInfo() {
+    let info = `Move: ${moveStack.length} Undo: ${undoCount} Box: ${getRemainingBoxCount()}`;
+    var ctx = canvas.getContext('2d');
+    ctx.font = '48px serif';
+    ctx.textBaseline = 'top';
+    ctx.clearRect(0, position.length * 64, position.length * 64, 100);
+    ctx.fillText(info, 10, position.length * 64 + 24);
+}
+
+function getRemainingBoxCount() {
+    let count = 0;
+
+    for (let i = 0; i < ground.length; i++) {
+        for (let j = 0; j < ground[i].length; j++) {
+            if (ground[i][j] === "." && position[i][j] !== "o")
+                count++;
+        }
+    }
+
+    return count;
 }
 
 function keydown(e) {
@@ -222,6 +240,7 @@ function setPlayerPosition() {
 function resetLevel() {
     position = copyPosition(originalPosition);
     moveStack = [];
+    undoCount = 0;
     setPlayerPosition();
     printBoard();
 }
@@ -239,6 +258,8 @@ function undoLastMove() {
         position[move.box.from.x][move.box.from.y] = " ";
     }
     player = { x: move.player.to.x, y: move.player.to.y };
+    undoCount++;
+
     printBoard();
 }
 
