@@ -179,6 +179,8 @@ function keydown(e) {
 }
 
 function movePlayer(direction) {
+    let previousPlayerDirection = playerDirection;
+
     switch (direction) {
         case 'ArrowUp':
             playerDirection = 'playerUp';
@@ -217,6 +219,7 @@ function movePlayer(direction) {
     position[x1][y1] = "x";
     position[player.x][player.y] = " ";
     move.player = { from: { x: x1, y: y1 }, to: { x: player.x, y: player.y } };
+    move.playerDirection = previousPlayerDirection;
     moveStack.push(move);
 
     player = { x: x1, y: y1 };
@@ -264,6 +267,7 @@ function undoLastMove() {
     player = { x: move.player.to.x, y: move.player.to.y };
     undoCount++;
 
+    playerDirection = move.playerDirection;
     printBoard();
 }
 
